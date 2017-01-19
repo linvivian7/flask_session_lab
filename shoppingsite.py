@@ -78,6 +78,10 @@ def show_shopping_cart():
     # Make sure your function can also handle the case wherein no cart has
     # been added to the session
 
+    if "cart" not in session:
+        flash("Buy something first")
+        return redirect("/melons")
+
     melon_objects = {}
     total = 0
 
@@ -120,11 +124,22 @@ def add_to_cart(melon_id):
     return redirect("/cart")
 
 
-@app.route("/login", methods=["GET"])
+@app.route("/login")
 def show_login():
     """Show login form."""
 
     return render_template("login.html")
+
+
+@app.route("/logout")
+def process_logout():
+    """Show logout page."""
+
+    del session["logged_in_customer_email"]
+    del session["cart"]
+    flash("You've been succesfully logged out!")
+
+    return redirect("/melons")
 
 
 @app.route("/login", methods=["POST"])
