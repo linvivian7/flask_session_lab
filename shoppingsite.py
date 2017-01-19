@@ -7,15 +7,14 @@ Authors: Joel Burton, Christian Fernandez, Meggie Mahnken, Katie Byers.
 """
 
 
-from flask import Flask, render_template, redirect, flash, session
+from flask import Flask, render_template, redirect, flash, session, request
 import jinja2
 
 import melons
+import customers
 
 
 app = Flask(__name__)
-app.secret_key = "asdhfaerht secrety"
-
 # A secret key is needed to use Flask sessioning features
 
 app.secret_key = 'this-should-be-something-unguessable'
@@ -89,8 +88,8 @@ def show_shopping_cart():
         melon_objects[melon] = inf_melon
 
     return render_template("cart.html",
-                            display_melons=melon_objects,
-                            total=total)
+                           display_melons=melon_objects,
+                           total=total)
 
 
 @app.route("/add_to_cart/<melon_id>")
@@ -150,7 +149,26 @@ def process_login():
     # - if they don't, flash a failure message and redirect back to "/login"
     # - do the same if a Customer with that email doesn't exist
 
-    return "Oops! This needs to be implemented"
+    email = request.form.get("email")
+    input_password = request.form.get("password")
+
+    try:
+        customer = customers.get_by_email(email)
+    except:
+        flash("No customer with that email found.")
+        return redirect("/login")
+
+    if "logged_in_customer_email" not in session:
+        session["logged_in_customer_email"] = {}
+
+    if customer.password == input_password:
+        session["logged_in_customer_email"][email] = customer.email
+        flash("Login successful!")
+        return redirect("/melons")
+
+    else:
+        flash("Incorrect password.")
+        return redirect("/login")
 
 
 @app.route("/checkout")
